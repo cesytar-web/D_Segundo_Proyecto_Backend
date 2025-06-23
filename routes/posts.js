@@ -1,7 +1,7 @@
 const express = require('express')
 const router = express.Router()
 const PostController = require('../controllers/PostController')
-const { authentication } = require('../Middlewares/authentication')
+const { authentication } = require('../middlewares/authentication')
 
 router.post('/:id/like', authentication, PostController.like);
 router.post('/:id/unlike', authentication, PostController.unlike);
