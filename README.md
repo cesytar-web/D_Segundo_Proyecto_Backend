@@ -113,7 +113,7 @@ develop: rama activa de desarrollo.
 
 
 
-![](https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQwdXYZxkPBfe1y-fl8S7lgV_TvuIgxwb7IEQ&s)
+![](https://www.mongodb.com/developer/_next/image/?url=https%3A%2F%2Fimages.contentstack.io%2Fv3%2Fassets%2Fblt39790b633ee0d5a7%2Fblt58334781b4d449a5%2F647a2ed951fb84683a7a8406%2FMDB_and_Mongoose_Article_1_1.png&w=1920&q=75)
 
 
 🧠 Autor
