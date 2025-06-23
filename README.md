@@ -113,9 +113,6 @@ develop: rama activa de desarrollo.
 
 
 
-![](https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSA6bPOJafeQGvc0NHH-8_cEulq4xNOc9FP-Q&s)
-
-![](https://media.licdn.com/dms/image/v2/D5612AQHwP1_BoM8xGA/article-cover_image-shrink_720_1280/article-cover_image-shrink_720_1280/0/1708859111443?e=1756339200&v=beta&t=QE6KgHQ7ev5GqDx9cv4ccXpSWKs_u8LzlQhJKQFNB0w)
 
 🧠 Autor
 Desarrollado por Cecilia 
