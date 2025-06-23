@@ -113,8 +113,9 @@ develop: rama activa de desarrollo.
 
 
 
-![](https://www.mongodb.com/developer/_next/image/?url=https%3A%2F%2Fimages.contentstack.io%2Fv3%2Fassets%2Fblt39790b633ee0d5a7%2Fblt58334781b4d449a5%2F647a2ed951fb84683a7a8406%2FMDB_and_Mongoose_Article_1_1.png&w=1920&q=75)
+![](https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSA6bPOJafeQGvc0NHH-8_cEulq4xNOc9FP-Q&s)
 
+![](https://media.licdn.com/dms/image/v2/D5612AQHwP1_BoM8xGA/article-cover_image-shrink_720_1280/article-cover_image-shrink_720_1280/0/1708859111443?e=1756339200&v=beta&t=QE6KgHQ7ev5GqDx9cv4ccXpSWKs_u8LzlQhJKQFNB0w)
 
 🧠 Autor
 Desarrollado por Cecilia 
