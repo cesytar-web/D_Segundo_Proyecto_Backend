@@ -34,7 +34,7 @@ cd D_Segundo_Proyecto_Backend
 # Instala las dependencias
 npm install
 
-# Crea un archivo .env y añade tus claves (ejemplo .env.example incluido)
+
 
 # Inicia el servidor
 npm run dev
@@ -100,7 +100,7 @@ Authorization: <TOKEN>
 ├── config/
 │   └── config.js
 ├── index.js
-└── .env
+
 
 
 
