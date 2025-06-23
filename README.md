@@ -4,7 +4,7 @@
 
 ## 📌 Introducción
 
-Este proyecto es una API RESTful para una red social desarrollada con **Node.js**, **Express** y **MongoDB** (mediante **Mongoose**). Aquí se integran funcionalidades como registro/login de usuarios, creación de posts, likes, comentarios y autenticación con tokens JWT.
+Este proyecto es una API RESTful para una red social desarrollada con: **Express** y **MongoDB** (mediante **Mongoose**). Aquí se integran funcionalidades como registro/login de usuarios, creación de posts, likes, comentarios y autenticación con tokens JWT.
 
 El objetivo es consolidar conocimientos de backend en un entorno realista, aplicando seguridad, arquitectura de rutas y controladores, y estructura de carpetas adecuada.
 
@@ -12,7 +12,7 @@ El objetivo es consolidar conocimientos de backend en un entorno realista, aplic
 
 ## 🛠 Tecnologías Utilizadas
 
-- Node.js
+
 - Express.js
 - MongoDB
 - Mongoose
@@ -100,6 +100,7 @@ Authorization: <TOKEN>
 ├── config/
 │   └── config.js
 ├── index.js
+
 
 
 
