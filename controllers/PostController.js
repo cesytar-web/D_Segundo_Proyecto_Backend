@@ -1,159 +1,117 @@
-const Post = require('../models/posts')
+const Post = require('../models/Post');
+const Comment = require('../models/Comment');
 
 const PostController = {
-  // Crear post con validación
-  async create(req, res) {
-    const { author, content } = req.body;
-
-    // Validar campos obligatorios
-    if (!author || !content) {
-      return res.status(400).send({ message: 'Faltan campos obligatorios: author y content son requeridos.' });
-    }
-
+  create: async (req, res) => {
     try {
-      const post = await Post.create(req.body)
-      res.status(201).send(post)
-    } catch (error) {
-      console.error(error)
-      res.status(500).send({ message: 'Ha habido un problema al crear el post' })
-    }
-  },
+      const { title, content } = req.body;
+      if (!content) return res.status(400).send({ message: 'El contenido es obligatorio' });
 
-  // Obtener todos los posts con paginación
-  async getAll(req, res) {
-    try {
-      // 1. Leer el número de página desde la URL (?page=1), si no hay, usar la página 1
-      let page = req.query.page ? parseInt(req.query.page) : 1;
-
-      // 2. Definir cuántos posts queremos mostrar por página (10)
-      let limit = 10;
-
-      // 3. Calcular cuántos posts se deben saltar para empezar en la página correcta
-      let skip = (page - 1) * limit;
-
-      // 4. Buscar posts en la base de datos, saltando y limitando resultados
-      const posts = await Post.find()
-        .skip(skip)  // saltar los primeros posts de las páginas anteriores
-        .limit(limit); // traer solo 10 posts
-
-      // 5. Contar cuántos posts hay en total para saber cuántas páginas hay
-      const totalPosts = await Post.countDocuments();
-
-      // 6. Responder con los posts y la información de paginación
-      res.send({
-        page: page,
-        totalPages: Math.ceil(totalPosts / limit),
-        totalPosts: totalPosts,
-        posts: posts,
+      const post = await Post.create({
+        title,
+        content,
+        author: req.user._id, // Autor logueado
       });
 
+      res.status(201).send(post);
     } catch (error) {
-      console.error(error)
-      res.status(500).send({ message: 'Error al obtener los posts' })
+      console.error(error);
+      res.status(500).send({ message: 'Error al crear post' });
     }
   },
 
-  // Obtener post por ID
-  async getById(req, res) {
+  getAll: async (req, res) => {
     try {
-      const post = await Post.findById(req.params._id)
-      if (!post) return res.status(404).send({ message: 'Post no encontrado' })
-      res.send(post)
+      const posts = await Post.find().populate('author').populate('comments');
+      res.send(posts);
     } catch (error) {
-      console.error(error)
-      res.status(500).send({ message: 'Error al obtener el post' })
+      console.error(error);
+      res.status(500).send({ message: 'Error al obtener posts' });
     }
   },
 
-  // Buscar posts por nombre (asumiendo que "name" es un campo válido en posts)
-  async getPostsByName(req, res) {
+  // Funciones temporales para que el servidor arranque
+  getById: async (req, res) => {
+    res.status(200).send({ message: 'Función getById temporal, pendiente de implementar' });
+  },
+
+  getPostsByName: async (req, res) => {
+    res.status(200).send({ message: 'Función getPostsByName temporal, pendiente de implementar' });
+  },
+
+  delete: async (req, res) => {
     try {
-      if (req.params.name.length > 20) {
-        return res.status(400).send('Búsqueda demasiado larga')
-      }
-      const name = new RegExp(req.params.name, 'i')
-      const posts = await Post.find({ name })
-
-      res.send(posts)
+      const post = await Post.findByIdAndDelete(req.params._id);
+      if (!post) return res.status(404).send({ message: 'Post no encontrado para eliminar' });
+      res.send({ message: 'Post eliminado correctamente', post });
     } catch (error) {
-      console.error(error)
-      res.status(500).send({ message: 'Error en la búsqueda' })
+      console.error(error);
+      res.status(500).send({ message: 'Error al eliminar post' });
     }
   },
 
-  // Eliminar post por ID
-  async delete(req, res) {
+  like: async (req, res) => {
     try {
-      const post = await Post.findByIdAndDelete(req.params._id)
-      if (!post) return res.status(404).send({ message: 'Post no encontrado para eliminar' })
-      res.send({ post, message: 'Post eliminado correctamente' })
+      const post = await Post.findById(req.params.id);
+      if (!post) return res.status(404).send({ message: 'Post no encontrado' });
+
+      const userId = req.user._id;
+      if (post.likes.includes(userId)) return res.status(400).send({ message: 'Ya diste like' });
+
+      post.likes.push(userId);
+      await post.save();
+      res.send({ message: 'Like agregado', likes: post.likes.length });
     } catch (error) {
-      console.error(error)
-      res.status(500).send({ message: 'Hubo un problema intentando eliminar el post' })
+      console.error(error);
+      res.status(500).send({ message: 'Error al dar like' });
     }
   },
 
-  // Actualizar post por ID
-  async update(req, res) {
+  unlike: async (req, res) => {
     try {
-      const post = await Post.findByIdAndUpdate(
-        req.params._id,
-        req.body,
-        { new: true }
-      )
-      if (!post) return res.status(404).send({ message: 'Post no encontrado para actualizar' })
-      res.send({ message: 'Post actualizado correctamente', post })
+      const post = await Post.findById(req.params.id);
+      if (!post) return res.status(404).send({ message: 'Post no encontrado' });
+
+      const userId = req.user._id;
+      post.likes = post.likes.filter(id => id.toString() !== userId.toString());
+      await post.save();
+      res.send({ message: 'Like removido', likes: post.likes.length });
     } catch (error) {
-      console.error(error)
-      res.status(500).send({ message: 'Error al actualizar el post' })
+      console.error(error);
+      res.status(500).send({ message: 'Error al quitar like' });
     }
   },
-  // Dar like a un post
-async like(req, res) {
-  try {
-    const postId = req.params.id;
-    const userId = req.user._id;
 
-    const post = await Post.findById(postId);
-    if (!post) return res.status(404).send({ message: 'Post no encontrado' });
+  addComment: async (req, res) => {
+    try {
+      const { content } = req.body;
+      if (!content) return res.status(400).send({ message: 'El contenido del comentario es obligatorio' });
 
-    if (post.likes.includes(userId)) {
-      return res.status(400).send({ message: 'Ya diste like a este post' });
+      const comment = await Comment.create({ author: req.user._id, content });
+      const post = await Post.findById(req.params.id);
+      post.comments.push(comment._id);
+      await post.save();
+
+      res.send({ message: 'Comentario agregado', comment });
+    } catch (error) {
+      console.error(error);
+      res.status(500).send({ message: 'Error al agregar comentario' });
     }
+  },
 
-    post.likes.push(userId);
-    await post.save();
-
-    res.send({ message: 'Like agregado', likes: post.likes.length });
-  } catch (error) {
-    console.error(error);
-    res.status(500).send({ message: 'Error al dar like' });
-  }
-},
-
-// Quitar like a un post
-async unlike(req, res) {
-  try {
-    const postId = req.params.id;
-    const userId = req.user._id;
-
-    const post = await Post.findById(postId);
-    if (!post) return res.status(404).send({ message: 'Post no encontrado' });
-
-    if (!post.likes.includes(userId)) {
-      return res.status(400).send({ message: 'No has dado like a este post' });
+  getComments: async (req, res) => {
+    try {
+      const post = await Post.findById(req.params.id).populate({
+        path: 'comments',
+        populate: { path: 'author', select: 'name email' }
+      });
+      if (!post) return res.status(404).send({ message: 'Post no encontrado' });
+      res.send(post.comments);
+    } catch (error) {
+      console.error(error);
+      res.status(500).send({ message: 'Error al obtener comentarios' });
     }
+  },
+};
 
-    post.likes = post.likes.filter(id => id.toString() !== userId.toString());
-    await post.save();
-
-    res.send({ message: 'Like removido', likes: post.likes.length });
-  } catch (error) {
-    console.error(error);
-    res.status(500).send({ message: 'Error al quitar like' });
-  }
-},
-
-}
-
-module.exports = PostController
+module.exports = PostController;

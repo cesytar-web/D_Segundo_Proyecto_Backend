@@ -1,13 +1,19 @@
-const express = require('express')
-const router = express.Router()
-const UserController = require('../controllers/UserController')
-const { authentication } = require('../middlewares/authentication')
+const express = require('express');
+const router = express.Router();
+const UserController = require('../controllers/UserController');
+const { authentication } = require('../middlewares/authentication');
 
+// Rutas públicas
+router.post('/register', UserController.register);
+router.post('/login', UserController.login);
 
-router.post('/register', UserController.register)
-router.post('/login', UserController.login)
-router.get('/getProfile', authentication, UserController.getProfile)
-router.delete('/logout', authentication, UserController.logout)
+// Rutas protegidas (requieren token)
+router.get('/getProfile', authentication, UserController.getProfile);
+router.delete('/logout', authentication, UserController.logout);
 
+// Obtener todos los usuarios (protegido)
+router.get('/', authentication, UserController.getAllUsers);
 
-module.exports = router
+// Ruta para obtener datos del usuario logueado y sus posts
+router.get('/me', authentication, UserController.getProfile);
+module.exports = router;

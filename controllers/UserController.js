@@ -1,67 +1,83 @@
-const User = require('../models/User')
-const jwt = require('jsonwebtoken')
-const bcrypt = require('bcrypt')
-const { jwt_secret } = require('../config/keys.js')
+const User = require('../models/User');
+const jwt = require('jsonwebtoken');
+const bcrypt = require('bcrypt');
+const { jwt_secret } = require('../config/keys.js');
+const Post = require('../models/Post');
 
 const UserController = {
-//register users
- async register(req, res) {
-   try {
-    //Implementar validacion a la hora de crear un usuario
-     const { name, email, password } = req.body;
-
-    // Validación simple: comprobar que los campos existan y no estén vacíos
-    if (!name || !email || !password) {
-      return res.status(400).send({ message: 'Todos los campos son obligatorios: name, email y password' });
+  // Registrar usuarios
+  async register(req, res) {
+    try {
+      const { name, email, password } = req.body;
+      if (!name || !email || !password) {
+        return res.status(400).send({ message: 'Todos los campos son obligatorios' });
+      }
+      const hashedPassword = await bcrypt.hash(password, 10);
+      const user = await User.create({ name, email, password: hashedPassword });
+      res.status(201).send({ message: 'Usuario registrado con éxito', user });
+    } catch (error) {
+      console.error(error);
+      res.status(500).send({ message: 'Error al registrar el usuario' });
     }
-     const user = await User.create(req.body)
-     res.status(201).send({ message: 'Usuario registrado con exito', user })
-   } catch (error) {
-     console.error(error)
-     res.status(500).send({ message: 'Error al registrar el usuario' });
-   }
- },
+  },
 
- //login users
+  // Login usuarios
   async login(req, res) {
-   try {
-     const user = await User.findOne({
-       email: req.body.email,
-     })
-     const token = jwt.sign({ _id: user._id }, jwt_secret)
-     if (user.tokens.length > 3) user.tokens.shift()
-     user.tokens.push(token)
-     await user.save()
-     res.send({ message: 'Bienvenid@ ' + user.name, token })
-   } catch (error) {
-     console.error(error)
-   }
- },
- //getProfile
-async getProfile(req, res) {
-  try {
-    const user = await User.findById(req.user._id).select('-password -tokens')
-    res.send(user)
-  } catch (error) {
-    console.error(error)
-    res.status(500).send({ message: 'Error al obtener perfil del usuario' })
-  }
-},
+    try {
+      const user = await User.findOne({ email: req.body.email });
+      if (!user) return res.status(400).send({ message: 'Email o contraseña incorrectos' });
 
-//logout
-async logout(req, res) {
-   try {
-     await User.findByIdAndUpdate(req.user._id, {
-       $pull: { tokens: req.headers.authorization },
-     })
-     res.send({ message: 'Desconectado con éxito' })
-   } catch (error) {
-     console.error(error)
-     res.status(500).send({
-       message: 'Hubo un problema al intentar desconectar al usuario',
-     })
-   }
- },
+      const validPassword = await bcrypt.compare(req.body.password, user.password);
+      if (!validPassword) return res.status(400).send({ message: 'Email o contraseña incorrectos' });
 
-}
-module.exports = UserController
+      const token = jwt.sign({ _id: user._id }, jwt_secret);
+      if (!user.tokens) user.tokens = [];
+      if (user.tokens.length > 3) user.tokens.shift();
+      user.tokens.push(token);
+      await user.save();
+
+      res.send({ message: 'Bienvenid@ ' + user.name, token });
+    } catch (error) {
+      console.error(error);
+      res.status(500).send({ message: 'Error en el login' });
+    }
+  },
+
+  // Obtener perfil del usuario logueado con sus posts
+  async getProfile(req, res) {
+    try {
+      const user = await User.findById(req.user._id).select('-password -tokens');
+      const posts = await Post.find({ author: req.user._id }).populate('comments').populate('author');
+      res.send({ user, posts });
+    } catch (error) {
+      console.error(error);
+      res.status(500).send({ message: 'Error al obtener perfil del usuario' });
+    }
+  },
+
+  // Cerrar sesión
+  async logout(req, res) {
+    try {
+      await User.findByIdAndUpdate(req.user._id, {
+        $pull: { tokens: req.headers.authorization },
+      });
+      res.send({ message: 'Desconectado con éxito' });
+    } catch (error) {
+      console.error(error);
+      res.status(500).send({ message: 'Hubo un problema al intentar desconectar al usuario' });
+    }
+  },
+
+  // Obtener todos los usuarios
+  async getAllUsers(req, res) {
+    try {
+      const users = await User.find().select('-password -tokens');
+      res.json(users);
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ message: 'Error al obtener usuarios' });
+    }
+  },
+};
+
+module.exports = UserController;
