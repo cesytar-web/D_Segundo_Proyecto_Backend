@@ -1,5 +1,5 @@
 const express = require('express');
-const cors = require('cors');
+const cors = require('cors'); // Importa cors
 const app = express();
 const PORT = 8080;
 const { dbConnection } = require('./config/config');
@@ -9,10 +9,11 @@ const User = require('./models/User');
 const Post = require('./models/Post');
 const Comment = require('./models/Comment');
 
-// Middleware para habilitar CORS desde el frontend
+// Middleware para habilitar CORS solo para tu frontend
 app.use(cors({
-    origin: 'http://localhost:5173', // URL de tu frontend
-    credentials: true, // Permite enviar cookies o headers de autenticación
+    origin: 'http://localhost:5173', // Cambia este puerto si usas otro
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    credentials: true // Permite enviar cookies o headers de autenticación
 }));
 
 // Middleware para parsear JSON
@@ -54,7 +55,7 @@ dbConnection()
         app.use('/posts', require('./routes/posts'));
         app.use('/comments', require('./routes/comments'));
 
-        // Nueva ruta para libros
+        // Ruta para libros
         app.use('/books', require('./routes/books'));
 
         app.listen(PORT, () => console.log(`Server started at port ${PORT}`));
