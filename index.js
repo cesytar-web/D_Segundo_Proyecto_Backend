@@ -36,8 +36,8 @@ async function precargarDatos() {
     let posts = await Post.find();
     if (posts.length === 0) {
         posts = await Post.insertMany([
-            { content: 'Este es el contenido del primer post.', author: users[0]._id },
-            { content: 'Aquí va el contenido del segundo post.', author: users[1]._id }
+            { title: 'Primer post', content: 'Este es el contenido del primer post.', author: users[0]._id },
+            { title: 'Segundo post', content: 'Aquí va el contenido del segundo post.', author: users[1]._id }
         ]);
         console.log('Posts precargados en la base de datos');
     }
