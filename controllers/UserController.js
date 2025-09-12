@@ -5,13 +5,16 @@ const { jwt_secret } = require('../config/keys.js');
 const Post = require('../models/Post');
 
 const UserController = {
-    // Registrar usuarios
+    // Registrar usuario
     async register(req, res) {
         try {
-            const { name, email, password } = req.body;
-            if (!name || !email || !password) {
-                return res.status(400).send({ message: 'Todos los campos son obligatorios' });
+            let { name, email, password } = req.body;
+            if (!email || !password) {
+                return res.status(400).send({ message: 'Email y contraseña son obligatorios' });
             }
+
+            // Si el nombre está vacío o es nulo, poner "Sin nombre"
+            name = name && name.trim() !== "" ? name : "Sin nombre";
 
             const existingUser = await User.findOne({ email });
             if (existingUser) {
@@ -22,6 +25,7 @@ const UserController = {
             const user = await User.create({ name, email, password: hashedPassword });
 
             const token = jwt.sign({ _id: user._id }, jwt_secret, { expiresIn: '7d' });
+
             user.tokens = user.tokens || [];
             if (user.tokens.length > 3) user.tokens.shift();
             user.tokens.push(token);
@@ -38,7 +42,7 @@ const UserController = {
         }
     },
 
-    // Login usuarios
+    // Login usuario
     async login(req, res) {
         try {
             const user = await User.findOne({ email: req.body.email });
@@ -48,6 +52,7 @@ const UserController = {
             if (!validPassword) return res.status(400).send({ message: 'Email o contraseña incorrectos' });
 
             const token = jwt.sign({ _id: user._id }, jwt_secret, { expiresIn: '7d' });
+
             user.tokens = user.tokens || [];
             if (user.tokens.length > 3) user.tokens.shift();
             user.tokens.push(token);
@@ -60,7 +65,7 @@ const UserController = {
         }
     },
 
-    // Obtener perfil del usuario logueado con sus posts
+    // Obtener perfil del usuario y sus posts
     async getProfile(req, res) {
         try {
             const user = await User.findById(req.user._id).select('-password -tokens');
@@ -72,11 +77,11 @@ const UserController = {
         }
     },
 
-    // Cerrar sesión
+    // Logout
     async logout(req, res) {
         try {
             await User.findByIdAndUpdate(req.user._id, {
-                $pull: { tokens: req.headers.authorization },
+                $pull: { tokens: req.headers.authorization.split(' ')[1] },
             });
             res.send({ message: 'Desconectado con éxito' });
         } catch (error) {
@@ -85,16 +90,28 @@ const UserController = {
         }
     },
 
-    // Obtener todos los usuarios
+    // Obtener todos los usuarios (sin duplicados)
     async getAllUsers(req, res) {
         try {
-            const users = await User.find().select('-password -tokens');
-            res.json(users);
+            const users = await User.find().select('name email');
+
+            // Filtrar duplicados por email
+            const seen = new Set();
+            const uniqueUsers = users.filter(u => {
+                if (seen.has(u.email)) return false;
+                seen.add(u.email);
+                return true;
+            }).map(u => ({
+                name: u.name || 'Sin nombre', // Reemplaza "Desconocido"
+                email: u.email
+            }));
+
+            res.json(uniqueUsers);
         } catch (err) {
             console.error(err);
             res.status(500).json({ message: 'Error al obtener usuarios' });
         }
-    },
+    }
 };
 
 module.exports = UserController;
